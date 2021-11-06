@@ -12,7 +12,7 @@ namespace Project2.Repository
     {
         IEnumerable<BlobViewModel> GetBlobs();
         bool DeleteBlob(string file, string fileExtension);
-        bool Uploadfile(IFormFile blobFile);
+        bool UploadFile(IFormFile blobFile);
         Task<bool> DownloadBlob(string file, string fileExtension);
     }
 }

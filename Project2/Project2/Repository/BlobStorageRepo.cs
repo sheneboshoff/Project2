@@ -84,7 +84,7 @@ namespace Project2.Repository
         //    return true;
         //}
 
-        public bool Upload (IFormFile blobFile)
+        public bool UploadFile (IFormFile blobFile)
         {
             if (blobFile == null)
                 return false;
