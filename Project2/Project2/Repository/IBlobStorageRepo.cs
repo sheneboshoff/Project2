@@ -8,7 +8,7 @@ using System.Web;
 
 namespace Project2.Repository
 {
-    interface IBlobStorageRepo
+    public interface IBlobStorageRepo
     {
         IEnumerable<BlobViewModel> GetBlobs();
         bool DeleteBlob(string file, string fileExtension);

@@ -26,8 +26,8 @@
                     <td>
                         <a href=@item.PrimaryUri>@item.PrimaryUri</a>
                     </td>
-                    @*<td>@Html.ActionLink("Remove", "DeletedBlob", new { controller = "Blob", file = item.FileNameWithoutExt, extension = item.FileNameExtOnly })</td>*@
-                    <td>@Html.ActionLink("Downlaod", "DownloadBlob", new { controller = "Blob", file = item.FileNameWithoutExt, extension = item.FileNameExtOnly })</td>
+                    <td>@Html.ActionLink("Remove", "DeletedBlob", new { controller = "Blob", file = item.FileNameWithoutExt, extension = item.FileNameExtOnly }, new { @class = "btn btn-link" })</td>
+                    <td>@Html.ActionLink("Downlaod", "DownloadBlob", new { controller = "Blob", file = item.FileNameWithoutExt, extension = item.FileNameExtOnly }, new { @class = "btn btn-link" })</td>
                     <td>
                         <input type="submit" href="#" class="btn btn-link" id="btndel" value="Remove" data-id="@item.ActualFileName" />
                     </td>
@@ -40,5 +40,28 @@
 </div>
 
 @section scripts{ 
-
+    <script type="text/javascript">
+        debugger
+        $(document).ready(function () {
+            $('table tbody tr td input[type="submit"]').click(function () {
+                var fileName = $(this).attr("data-id")
+                var ext = fileName.split('.').pop();
+                var file = fileName.substr(0, fileName.lastIndexOf('.'));
+                var tr = $(this).closest('tr');
+                var msg = confirm("Are you sure you want to delete Blob?");
+                if (msg) {
+                    $.ajax({
+                        type: "post",
+                        url: '@Url.Action("RemoveBlob", "Blob")',
+                        data: { file: file, extension: ext },
+                        success: function (response) {
+                            if (response == true) {
+                                tr.remove();
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 }

@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Project2.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web.Helpers;
 
 namespace Project2
 {
@@ -26,6 +28,7 @@ namespace Project2
             services.AddRazorPages();
             services.AddOptions();
             services.Configure<AzureStorageConfig>(Configuration.GetSection("AzureStorageConfig"));
+            services.AddScoped<IBlobStorageRepo, BlobStorageRepo>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
