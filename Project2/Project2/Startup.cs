@@ -1,9 +1,11 @@
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Project2.Repository;
+using Project2.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,8 +29,10 @@ namespace Project2
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddOptions();
-            services.Configure<AzureStorageConfig>(Configuration.GetSection("AzureStorageConfig"));
-            services.AddScoped<IBlobStorageRepo, BlobStorageRepo>();
+            //services.Configure<AzureStorageConfig>(Configuration.GetSection("AzureStorageConfig"));
+            //services.AddScoped<IBlobStorageRepo, BlobStorageRepo>();
+            services.AddSingleton(x => new BlobServiceClient(Configuration.GetValue<string>("AzureBlobStorageConnectionString")));
+            services.AddSingleton<IBlobService, BlobService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
