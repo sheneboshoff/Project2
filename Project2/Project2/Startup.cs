@@ -1,9 +1,11 @@
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Project2.Models;
 using Project2.Repository;
 using Project2.Services;
 using System;
@@ -33,6 +35,8 @@ namespace Project2
             //services.AddScoped<IBlobStorageRepo, BlobStorageRepo>();
             services.AddSingleton(x => new BlobServiceClient(Configuration.GetValue<string>("AzureBlobStorageConnectionString")));
             services.AddSingleton<IBlobService, BlobService>();
+            services.AddDbContext<PhotoManagement>(options =>
+            options.UseSqlServer(Configuration.GetConnectionString("Project2DbContextConnection")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
