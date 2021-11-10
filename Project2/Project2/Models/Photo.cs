@@ -9,9 +9,11 @@ namespace Project2.Models
     public class Photo
     {
         public int PhotoId { get; set; }
+
+        [DisplayName("Creator")]
         public string UserId { get; set; }
 
-        [DisplayName("Name")]
+        [DisplayName("Photo")]
         public string Photo_Name { get; set; }
 
         [DisplayName("Format")]

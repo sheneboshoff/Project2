@@ -6,13 +6,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Project2.Models;
-using Project2.Repository;
 using Project2.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Helpers;
+using System.Web;
 
 namespace Project2
 {
@@ -37,6 +37,7 @@ namespace Project2
             services.AddSingleton<IBlobService, BlobService>();
             services.AddDbContext<PhotoManagement>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("Project2DbContextConnection")));
+            services.ConfigureApplicationCookie(options => options.Cookie.Name = "UserId");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,5 +66,6 @@ namespace Project2
                 endpoints.MapRazorPages();
             });
         }
+
     }
 }

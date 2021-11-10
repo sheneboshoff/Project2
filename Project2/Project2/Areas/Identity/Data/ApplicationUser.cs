@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using System.Web.Http;
+using Microsoft.AspNetCore.Http;
+using System.Web;
 
 namespace Project2.Areas.Identity.Data
 {
@@ -16,6 +19,6 @@ namespace Project2.Areas.Identity.Data
 
         [PersonalData]
         [Column(TypeName = "nvarchar(100)")]
-        public string LastName { get; set; }
+        public string LastName { get; set; }  
     }
 }
