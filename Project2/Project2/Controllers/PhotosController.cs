@@ -45,7 +45,10 @@ namespace Project2.Controllers
         // GET: Photos/Create
         public IActionResult AddOrEdit(int id = 0)
         {
-            return View(new Photo());
+            if (id == 0)
+                return View(new Photo());
+            else
+                return View(_context.Photo.Find(id));
         }
 
         // POST: Photos/Create
@@ -57,7 +60,10 @@ namespace Project2.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(photo);
+                if (photo.PhotoId == 0)
+                    _context.Add(photo);
+                else
+                    _context.Update(photo);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -118,19 +124,10 @@ namespace Project2.Controllers
         // GET: Photos/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var photo = await _context.Photo
-                .FirstOrDefaultAsync(m => m.PhotoId == id);
-            if (photo == null)
-            {
-                return NotFound();
-            }
-
-            return View(photo);
+            var photo = await _context.Photo.FindAsync(id);
+            _context.Photo.Remove(photo);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // POST: Photos/Delete/5
