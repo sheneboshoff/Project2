@@ -1,63 +1,50 @@
-﻿@model IEnumerable<Project2.Models.PhotoViewModel>
+﻿@model System.Data.DataTable
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "My Photos";
 }
 
-<h1>Index</h1>
+<h1>@ViewData["Title"]</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+
+<table class="table table-bordered">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.UserId)
+                Name
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Photo_Name)
+                Geolocation
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Photo_Format)
+                Tags
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Photo_Geolocation)
+                Capture Date
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Photo_Tags)
+                <a asp-action="Create">Create New</a>
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Photo_CaptureDate)
-            </th>
-            <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+@for (int i = 0; i < Model.Rows.Count; i++) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.UserId)
+                @Model.Rows[i]["Photo_Name"]
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Photo_Name)
+                @Model.Rows[i]["Photo_Geolocation"]
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Photo_Format)
+                @Model.Rows[i]["Photo_Tags"]
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Photo_Geolocation)
+                @Model.Rows[i]["Photo_CaptureDate"]
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Photo_Tags)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Photo_CaptureDate)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.PhotoId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.PhotoId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.PhotoId">Delete</a>
+                <a asp-action="Edit" asp-route-id="@Model.Rows[i]["PhotoId"]">Edit</a> |
+                <a asp-action="Delete" asp-route-id="@Model.Rows[i]["PhotoId"]">Delete</a>
             </td>
         </tr>
 }

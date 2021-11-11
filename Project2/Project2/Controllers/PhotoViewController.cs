@@ -25,13 +25,25 @@ namespace Project2.Controllers
         // GET: PhotoView
         public IActionResult Index()
         {
-            return View();
+            DataTable dt = new DataTable();
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            {
+                sqlConnection.Open();
+                SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
+                adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                adap.Fill(dt);
+            }
+                return View(dt);
         }     
 
         // GET: PhotoView/Edit/5
         public IActionResult Edit(int? id)
         {
             PhotoViewModel photoViewModel = new PhotoViewModel();
+            if (id > 0)
+            {
+                photoViewModel = FetchPhotoById(id);
+            }
             return View(photoViewModel);
         }
 
@@ -50,7 +62,8 @@ namespace Project2.Controllers
                     SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
-                    cmd.Parameters.AddWithValue("UserId", );
+                    cmd.Parameters.AddWithValue("UserId", getUserId());
+                    cmd.ExecuteNonQuery();
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -60,8 +73,7 @@ namespace Project2.Controllers
         // GET: PhotoView/Delete/5
         public IActionResult Delete(int? id)
         {
-            
-
+            PhotoViewModel photoViewModel = new PhotoViewModel();
             return View();
         }
 
@@ -70,13 +82,63 @@ namespace Project2.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-           
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            {
+                sqlConnection.Open();
+                SqlCommand cmd = new SqlCommand("PhotoDeleteById", sqlConnection);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("PhotoId", id);
+                cmd.ExecuteNonQuery();
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
         private string getUser()
         {
             return HttpContext.User.Identity.Name;
+        }
+
+        private string getUserId()
+        {
+            string result;
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand("GetUserIdByName", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("UserName", getUser());
+                result = cmd.ToString();
+            }
+            return result;
+        }
+
+        [NonAction]
+        public PhotoViewModel FetchPhotoById(int? id)
+        {
+            PhotoViewModel photoViewModel = new PhotoViewModel();
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            {
+                DataTable dt = new DataTable();
+                con.Open();
+                SqlDataAdapter adap = new SqlDataAdapter("GetPhotoById", con);
+                adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                adap.SelectCommand.Parameters.AddWithValue("PhotoId", id);
+                adap.Fill(dt);
+
+                if (dt.Rows.Count == 1)
+                {
+                    photoViewModel.PhotoId = Convert.ToInt32(dt.Rows[0]["PhotoId"].ToString());
+                    photoViewModel.UserId = dt.Rows[1]["UserId"].ToString();
+                    photoViewModel.Photo_Name = dt.Rows[2]["Photo_Name"].ToString();
+                    photoViewModel.Photo_Format = dt.Rows[3]["Photo_Format"].ToString();
+                    photoViewModel.Photo_Geolocation = dt.Rows[4]["Photo_Geolocation"].ToString();
+                    photoViewModel.Photo_Tags = dt.Rows[5]["Photo_Tags"].ToString();
+                    photoViewModel.Photo_CaptureDate = dt.Rows[6]["Photo_CaptureDate"].ToString();
+                }
+
+                return photoViewModel;
+            }
         }
     }
 }
