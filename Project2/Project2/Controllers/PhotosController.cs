@@ -61,8 +61,7 @@ namespace Project2.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddOrEdit([Bind("PhotoId,UserId,Photo_Name,Photo_Format,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] Photo photo)
-        {
-            //var result = new CookiesController().readCookie("userId");
+        {            
             if (ModelState.IsValid)
             {
                 if (photo.PhotoId == 0)
@@ -73,6 +72,8 @@ namespace Project2.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(photo);
+
+
         }                
 
         // GET: Photos/Delete/5

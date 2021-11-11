@@ -6,6 +6,7 @@
 
 <h4>Photo</h4>
 <hr />
+
 <div class="row">
     <div class="col-md-4">
         <div class="container">
@@ -14,21 +15,34 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="PhotoId" />
             @*<div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>*@
-        <div class="form-group">
-            <label asp-for="Photo_Name" class="control-label"></label>
-            <input type="file" name="uploadFileName" value="Browse" class="btn-primary" />
-            @*<input asp-for="Photo_Name" class="form-control" />*@
-            <span asp-validation-for="Photo_Name" class="text-danger"></span>
-        </div>
+                    <label asp-for="UserId" class="control-label"></label>
+                    <input asp-for="UserId" class="form-control" />
+                    <span asp-validation-for="UserId" class="text-danger"></span>
+                </div>*@
+            <div class="form-group">
+                @using (Html.BeginForm("UploadBlob", "Blob", FormMethod.Post, new { encType = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="container">
+                        <div class="form-group">
+                            <br />
+                            <label asp-for="Photo_Name" class="control-label"></label>
+                            <input type="file" name="uploadFileName" value="Browse" class="btn-primary" />
+                            <br />
+                            @*<button type="submit" id="buttonSubmit" class="btn btn-success">Upload</button>*@
+                        </div>
+                    </div>
+                }
+                @*<label asp-for="Photo_Name" class="control-label"></label>
+                <input type="file" name="uploadFileName" value="Browse" class="btn-primary" />*@
+                @*<input asp-for="Photo_Name" class="form-control" />*@
+                <span asp-validation-for="Photo_Name" class="text-danger"></span>
+            </div>
             @*<div class="form-group">
-                <label asp-for="Photo_Format" class="control-label"></label>
-                <input asp-for="Photo_Format" class="form-control" />
-                <span asp-validation-for="Photo_Format" class="text-danger"></span>
-            </div>*@
+                    <label asp-for="Photo_Format" class="control-label"></label>
+                    <input asp-for="Photo_Format" class="form-control" />
+                    <span asp-validation-for="Photo_Format" class="text-danger"></span>
+                </div>*@
             <div class="form-group">
                 <label asp-for="Photo_Geolocation" class="control-label"></label>
                 <input asp-for="Photo_Geolocation" class="form-control" />
@@ -54,14 +68,8 @@
             </div>
         </form>
     </div>
-    
 </div>
-
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
-
-<script>
-    var user = '@user'
-</script>
