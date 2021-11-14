@@ -6,7 +6,15 @@
 
 <h1>@ViewData["Title"]</h1>
 
-
+<form asp-action="Index">
+    <div>
+        <p>
+            Search <input type="text" name="searchString" value=""/>
+            <input type="submit" value="Search" class="btn btn-info"/>
+            <a asp-action="Index">Remove filter</a>
+        </p>
+    </div>
+</form>
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -44,7 +52,8 @@
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@Model.Rows[i]["PhotoId"]">Edit</a> |
-                <a asp-action="Delete" asp-route-id="@Model.Rows[i]["PhotoId"]">Delete</a>
+                <a asp-action="Delete" asp-route-id="@Model.Rows[i]["PhotoId"]">Delete</a> |
+                <a asp-action="Share with" asp-route-id="@Model.Rows[i]["PhotoId"]">Share with</a>
             </td>
         </tr>
 }

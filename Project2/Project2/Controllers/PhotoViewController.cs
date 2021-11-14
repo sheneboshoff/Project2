@@ -23,21 +23,38 @@ namespace Project2.Controllers
         }
 
         // GET: PhotoView
-        public IActionResult Index()
+        public IActionResult Index(string searchString)
         {
             DataTable dt = new DataTable();
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
             {
                 sqlConnection.Open();
+                SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("UserId", getUserId());
                 SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
                 adap.SelectCommand.CommandType = CommandType.StoredProcedure;
                 adap.Fill(dt);
             }
-                return View(dt);
+            return View(dt);
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("UserId", getUserId());
+                    SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
+                    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                    adap.Fill(dt);
+                }
+            }
         }     
 
         // GET: PhotoView/Edit/5
-        public IActionResult Edit(int? id)
+        public IActionResult AddOrEdit(int? id)
         {
             PhotoViewModel photoViewModel = new PhotoViewModel();
             if (id > 0)
@@ -52,7 +69,7 @@ namespace Project2.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("PhotoId,UserId,Photo_Name,Photo_Format,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
+        public IActionResult AddOrEdit(int id, [Bind("PhotoId,UserId,Photo_Name,Photo_Format,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
         {
             if (ModelState.IsValid)
             {
@@ -63,6 +80,40 @@ namespace Project2.Controllers
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
                     cmd.Parameters.AddWithValue("UserId", getUserId());
+                    cmd.Parameters.AddWithValue("Photo_Name", photoViewModel.Photo_Name);
+                    cmd.Parameters.AddWithValue("Photo_Format", photoViewModel.Photo_Format);
+                    cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
+                    if (photoViewModel.Photo_Tags == null)
+                    {
+                        cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags + ",");
+                    }
+                    cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate);
+                    cmd.ExecuteNonQuery();
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(photoViewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ShareWith(int id, [Bind("PhotoId,UserId")] PhotoViewModel photoViewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("SharePhotoWithUser", sqlConnection);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
+                    cmd.Parameters.AddWithValue("UserId", photoViewModel.UserId);
+                    RedirectToPage("User");
+                    cmd.Parameters.AddWithValue("SharedWith", id);
                     cmd.ExecuteNonQuery();
                 }
                 return RedirectToAction(nameof(Index));
@@ -139,6 +190,20 @@ namespace Project2.Controllers
 
                 return photoViewModel;
             }
+        }
+
+        public string getChosenUser()
+        {
+            string result;
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand("GetUserIdByName", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("UserName", getUser());
+                result = cmd.ToString();
+            }
+            return result;
         }
     }
 }
