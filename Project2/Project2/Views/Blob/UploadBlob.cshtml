@@ -16,3 +16,16 @@
         </div>
     </div>
 } 
+
+<script type="text/javascript" language="javascript">
+    function validate() {
+        var fileUpload = document.getElementById('uploadFileControl').value;
+        var reg = /^(([a-zA-Z]:)|(\\{2}\w+)\$?)(\\(\w[\w].*))+(.jpeg|.JPEG|.gif|.GIF|.png|.PNG|.bmp|.BMP|.ico|.ICO|.jpg|.JPG|.tiff|.TIFF)$/;
+        if (reg.test(fileUpload)) {
+            return true
+        }
+        else {
+            alert("Only .jpg, .jpeg, .bmp, .gif, .png, .ico, and .tiff files are allowed");
+        }
+    }
+</script>

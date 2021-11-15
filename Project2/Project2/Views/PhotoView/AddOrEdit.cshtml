@@ -13,54 +13,47 @@
         <form asp-action="AddOrEdit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="PhotoId" />
-            <div>
-                @using (Html.BeginForm("UploadBlob", "Blob", FormMethod.Post, new { encType = "multipart/form-data" }))
-                {
-                @Html.AntiForgeryToken()
-                <div class="container">
-                    <div class="form-group">
-                        <br />
-                        <label asp-for="Photo_Name" class="control-label"></label>
-                        <input type="file" name="uploadFileName" value="Browse" class="btn-primary" />
-                        <br />
-                        @*<button type="submit" id="buttonSubmit" class="btn btn-success">Upload</button>*@
-                    </div>
+            <div class="container">
+                @*<div class="form-group">
+                    <label asp-for="Photo_Name" class="control-label"></label>
+                    <input asp-for="Photo_Name" class="form-control" />
+                    <span asp-validation-for="Photo_Name" class="text-danger"></span>
+                </div>*@
+                <div class="form-group">
+                    <label asp-for="Photo_Geolocation" class="control-label"></label>
+                    <input asp-for="Photo_Geolocation" class="form-control" />
+                    <span asp-validation-for="Photo_Geolocation" class="text-danger"></span>
                 </div>
-                }
+                <div class="form-group">
+                    <label asp-for="Photo_Tags" class="control-label"></label>
+                    <input asp-for="Photo_Tags" class="form-control" />
+                    <span asp-validation-for="Photo_Tags" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Photo_CaptureDate" class="control-label"></label>
+                    <input asp-for="Photo_CaptureDate" class="form-control" />
+                    <span asp-validation-for="Photo_CaptureDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
             </div>
             @*<div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>*@
-            <div class="form-group">
-                <label asp-for="Photo_Name" class="control-label"></label>
-                <input asp-for="Photo_Name" class="form-control" />
-                <span asp-validation-for="Photo_Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Photo_Format" class="control-label"></label>
-                <input asp-for="Photo_Format" class="form-control" />
-                <span asp-validation-for="Photo_Format" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Photo_Geolocation" class="control-label"></label>
-                <input asp-for="Photo_Geolocation" class="form-control" />
-                <span asp-validation-for="Photo_Geolocation" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Photo_Tags" class="control-label"></label>
-                <input asp-for="Photo_Tags" class="form-control" />
-                <span asp-validation-for="Photo_Tags" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Photo_CaptureDate" class="control-label"></label>
-                <input asp-for="Photo_CaptureDate" class="form-control" />
-                <span asp-validation-for="Photo_CaptureDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
+            <label asp-for="UserId" class="control-label"></label>
+            <input asp-for="UserId" class="form-control" />
+            <span asp-validation-for="UserId" class="text-danger"></span>
+        </div>*@
+            @*<div class="form-group">
+            <label asp-for="Photo_Name" class="control-label"></label>
+            <input asp-for="Photo_Name" class="form-control" />
+            <span asp-validation-for="Photo_Name" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Photo_Format" class="control-label"></label>
+            <input asp-for="Photo_Format" class="form-control" />
+            <span asp-validation-for="Photo_Format" class="text-danger"></span>
+        </div>*@
+
         </form>
     </div>
 </div>

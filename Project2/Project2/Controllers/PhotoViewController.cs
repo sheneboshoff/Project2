@@ -10,16 +10,23 @@ using Microsoft.Extensions.Configuration;
 using Project2.Data;
 using Project2.Models;
 using System.Data;
+using Project2.Services;
+using System.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Project2.Controllers
 {
     public class PhotoViewController : Controller
     {
         private readonly IConfiguration _configuration;
+        private readonly IBlobService _blobService;
+        private string fileName = "";
 
-        public PhotoViewController(IConfiguration configuration)
+        public PhotoViewController(IConfiguration configuration, IBlobService blobService)
         {
             _configuration = configuration;
+            _blobService = blobService;
         }
 
         // GET: PhotoView
@@ -70,32 +77,46 @@ namespace Project2.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddOrEdit(int id, [Bind("PhotoId,UserId,Photo_Name,Photo_Format,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
+        public IActionResult AddOrEdit([Bind("UserId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
         {
             if (ModelState.IsValid)
             {
-                using(SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                string fileExtension = "";                
+                string[] file = fileName.Split('.');               
+                fileName = file[0];
+                fileExtension = file[1];
+                
+
+                if (!validateExtension(fileExtension))
                 {
-                    sqlConnection.Open();
-                    SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
-                    cmd.Parameters.AddWithValue("UserId", getUserId());
-                    cmd.Parameters.AddWithValue("Photo_Name", photoViewModel.Photo_Name);
-                    cmd.Parameters.AddWithValue("Photo_Format", photoViewModel.Photo_Format);
-                    cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
-                    if (photoViewModel.Photo_Tags == null)
-                    {
-                        cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags);
-                    }
-                    else
-                    {
-                        cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags + ",");
-                    }
-                    cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate);
-                    cmd.ExecuteNonQuery();
+                    return View("ExtError");
                 }
-                return RedirectToAction(nameof(Index));
+                else
+                {
+                    using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                    {
+                        sqlConnection.Open();
+                        SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        //cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
+                        cmd.Parameters.AddWithValue("UserId", getUserId());
+                        cmd.Parameters.AddWithValue("Photo_Name", fileName);
+                        cmd.Parameters.AddWithValue("Photo_Format", fileExtension);
+                        cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
+                        if (photoViewModel.Photo_Tags == null)
+                        {
+                            cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags);
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags + ",");
+                        }
+                        cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate);
+                        cmd.ExecuteNonQuery();
+                        fileName = "";
+                    }
+                    return RedirectToAction(nameof(Index));
+                }
             }
             return View(photoViewModel);
         }
@@ -205,6 +226,29 @@ namespace Project2.Controllers
                 result = cmd.ToString();
             }
             return result;
+        }
+
+        public IActionResult UploadFile()
+        {
+            return View("UploadBlob");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadFile(UploadFileRequest request)
+        {
+            fileName = request.FileName;
+            await _blobService.UploadFileBlobAsync(request.FilePath, request.FileName);
+            return View("AddOrEdit");
+        }
+
+        public bool validateExtension(string ext)
+        {
+            if (ext.ToLower() != "jpg" | ext.ToLower() != "jpeg" | ext.ToLower() != "png" | ext.ToLower() != "bmp" | ext.ToLower() != "gif" | ext.ToLower() != "ico" | ext.ToLower() != "tiff")
+            {
+                return false;
+            }
+            else
+                return true;
         }
     }
 }

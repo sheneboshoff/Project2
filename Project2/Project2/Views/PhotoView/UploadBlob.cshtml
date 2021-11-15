@@ -1,0 +1,49 @@
+﻿
+
+@model Project2.Models.UploadFileRequest
+
+@{ 
+    ViewData["Title"] = "Add Photo";
+}
+
+<div id="file"></div>
+<h1>Add Photo</h1>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="UploadFile">
+            <div class="container">
+                <div class="form-group">
+                    <label asp-for="FileName" class="control-label"></label>
+                    <input asp-for="FileName" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="FilePath" class="control-label"></label>
+                    <input asp-for="FilePath" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $.ajax({
+        url: '@Url.Action("blobs/uploadFile")',
+        type: 'POST',
+        data: conversion(),
+        success: function (result) {
+            alert("Upload successful");
+        }
+    })
+
+    function conversion() {
+        const txt = '{"FilePath":"' + document.getElementById("name").value + '", "FileName":"' + document.getElementById("path").value + '"}'
+        const obj = JSON.parse(txt);
+        $.cookie = "fileName=" + document.getElementById("name").value;
+        return document.getElementById("file").innerHTML = obj.FilePath + ", " + obj.FileName;
+    }
+
+</script>

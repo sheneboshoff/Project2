@@ -32,7 +32,7 @@ namespace Project2.Controllers
         }
 
         [HttpPost("uploadFile")]
-        public async Task<IActionResult> UploadFile([FromBody] UploadFileRequest request)
+        public async Task<IActionResult> UploadFile(UploadFileRequest request)
         {
             await _blobService.UploadFileBlobAsync(request.FilePath, request.FileName);
             return Ok();
