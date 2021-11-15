@@ -30,10 +30,11 @@ namespace Project2.Controllers
             {
                 sqlConnection.Open();
                 SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("UserId", getUserId());
+                //cmd.CommandType = CommandType.StoredProcedure;
+                //cmd.Parameters.AddWithValue("UserId", getUserId());
                 SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
                 adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                adap.SelectCommand.Parameters.AddWithValue("UserId", getUserId());
                 adap.Fill(dt);
             }
             return View(dt);
@@ -45,7 +46,7 @@ namespace Project2.Controllers
                     sqlConnection.Open();
                     SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("UserId", getUserId());
+                    cmd.Parameters.AddWithValue("UserId", getUser());
                     SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
                     adap.SelectCommand.CommandType = CommandType.StoredProcedure;
                     adap.Fill(dt);
@@ -73,7 +74,7 @@ namespace Project2.Controllers
         {
             if (ModelState.IsValid)
             {
-                using(SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+                using(SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
                 {
                     sqlConnection.Open();
                     SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
@@ -105,7 +106,7 @@ namespace Project2.Controllers
         {
             if (ModelState.IsValid)
             {
-                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
                 {
                     sqlConnection.Open();
                     SqlCommand cmd = new SqlCommand("SharePhotoWithUser", sqlConnection);
@@ -133,7 +134,7 @@ namespace Project2.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
             {
                 sqlConnection.Open();
                 SqlCommand cmd = new SqlCommand("PhotoDeleteById", sqlConnection);
@@ -153,13 +154,13 @@ namespace Project2.Controllers
         private string getUserId()
         {
             string result;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
             {
                 con.Open();
                 SqlCommand cmd = new SqlCommand("GetUserIdByName", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("UserName", getUser());
-                result = cmd.ToString();
+                result = cmd.ExecuteScalar().ToString();
             }
             return result;
         }
@@ -168,7 +169,7 @@ namespace Project2.Controllers
         public PhotoViewModel FetchPhotoById(int? id)
         {
             PhotoViewModel photoViewModel = new PhotoViewModel();
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
             {
                 DataTable dt = new DataTable();
                 con.Open();
@@ -195,7 +196,7 @@ namespace Project2.Controllers
         public string getChosenUser()
         {
             string result;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("PhotoDBCon")))
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
             {
                 con.Open();
                 SqlCommand cmd = new SqlCommand("GetUserIdByName", con);

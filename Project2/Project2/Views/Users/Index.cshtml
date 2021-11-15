@@ -1,0 +1,93 @@
+﻿@model System.Data.DataTable
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Index">
+</form>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>
+                First Name
+            </th>
+            <th>
+                Last Name
+            </th>
+            <th>
+                Email
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < Model.Rows.Count; i++)
+        {
+            <tr>
+                <td>
+                    @Model.Rows[i]["FirstName"]
+                </td>
+                <td>
+                    @Model.Rows[i]["LastName"]
+                </td>
+                <td>
+                    @Model.Rows[i]["Email"]
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@*@model System.Data.DataTable
+
+    @{
+        ViewData["Title"] = "Users";
+    }
+
+    <h1>@ViewData["Title"]</h1>
+
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Email
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Rows.Count; i++)
+            {
+                <tr>
+                    <td>
+                        @Model.Rows[i]["Name"]
+                    </td>
+                    <td>
+                        @Model.Rows[i]["Email"]
+                    </td>
+                    <td>
+                        <a asp-action="Select" asp-route-id="@Model.Rows[i]["Id"]">Select</a>
+                        <input id="item.UserId" type="button" value="Select" onclick="select(this)"/>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>*@
+
+<script>
+    function select(item) {
+        var itemId = item.id,
+        var url = '@Url.Action("Select/", "User")';
+        var data = { Id: itemId };
+        $.post(url, data, function (result) {
+            var id = '#postedFor' + postId;
+            $(id).html(result);
+        });
+    }
+</script>
