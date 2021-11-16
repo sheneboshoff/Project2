@@ -27,7 +27,7 @@ namespace Project2.Models
         [DisplayName("Tags")]
         public string Photo_Tags { get; set; }
 
-        [DisplayName("Capture Date")]
+        [DisplayName("Capture Date")]       
         public string Photo_CaptureDate { get; set; }
     }
 }

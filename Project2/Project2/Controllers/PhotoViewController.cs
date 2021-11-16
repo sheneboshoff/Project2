@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Project2.Data;
 using Project2.Models;
-using System.Data;
 using Project2.Services;
-using System.IO;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
+using System;
+using System.Data;
+using System.Threading.Tasks;
 
 namespace Project2.Controllers
 {
@@ -21,7 +14,6 @@ namespace Project2.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IBlobService _blobService;
-        private string fileName = "";
 
         public PhotoViewController(IConfiguration configuration, IBlobService blobService)
         {
@@ -37,8 +29,6 @@ namespace Project2.Controllers
             {
                 sqlConnection.Open();
                 SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
-                //cmd.CommandType = CommandType.StoredProcedure;
-                //cmd.Parameters.AddWithValue("UserId", getUserId());
                 SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
                 adap.SelectCommand.CommandType = CommandType.StoredProcedure;
                 adap.SelectCommand.Parameters.AddWithValue("UserId", getUserId());
@@ -59,7 +49,7 @@ namespace Project2.Controllers
                     adap.Fill(dt);
                 }
             }
-        }     
+        }
 
         // GET: PhotoView/Edit/5
         public IActionResult AddOrEdit(int? id)
@@ -73,19 +63,48 @@ namespace Project2.Controllers
         }
 
         // POST: PhotoView/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddOrEdit([Bind("UserId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
+        public IActionResult AddOrEdit([Bind("PhotoId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
         {
             if (ModelState.IsValid)
             {
-                string fileExtension = "";                
-                string[] file = fileName.Split('.');               
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("PhotoId", getNextVal());
+                    cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
+                    if (photoViewModel.Photo_Tags == null)
+                    {
+                        cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags + ",");
+                    }
+                    cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate);
+                    cmd.ExecuteNonQuery();
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(photoViewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create([Bind("UserId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
+        {
+            if (ModelState.IsValid)
+            {
+                string fileName = HttpContext.Session.GetString("fileName");
+                string fileExtension = "";
+                string[] file = fileName.Split('.');
                 fileName = file[0];
                 fileExtension = file[1];
-                
 
                 if (!validateExtension(fileExtension))
                 {
@@ -98,7 +117,7 @@ namespace Project2.Controllers
                         sqlConnection.Open();
                         SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
                         cmd.CommandType = CommandType.StoredProcedure;
-                        //cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
+                        cmd.Parameters.AddWithValue("PhotoId", getNextVal());
                         cmd.Parameters.AddWithValue("UserId", getUserId());
                         cmd.Parameters.AddWithValue("Photo_Name", fileName);
                         cmd.Parameters.AddWithValue("Photo_Format", fileExtension);
@@ -121,26 +140,33 @@ namespace Project2.Controllers
             return View(photoViewModel);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult ShareWith(int id, [Bind("PhotoId,UserId")] PhotoViewModel photoViewModel)
+        public IActionResult ShareWith([Bind("PhotoId,Creator")] User userModel)
         {
-            if (ModelState.IsValid)
-            {
-                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
-                {
-                    sqlConnection.Open();
-                    SqlCommand cmd = new SqlCommand("SharePhotoWithUser", sqlConnection);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
-                    cmd.Parameters.AddWithValue("UserId", photoViewModel.UserId);
-                    RedirectToPage("User");
-                    cmd.Parameters.AddWithValue("SharedWith", id);
-                    cmd.ExecuteNonQuery();
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(photoViewModel);
+            return RedirectToAction("Index", "User");
+            //DataTable dt = new DataTable();
+            //using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            //{
+            //    sqlConnection.Open();
+            //    SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
+            //    SqlDataAdapter adap = new SqlDataAdapter("ViewAllUsers", sqlConnection);
+            //    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+            //    adap.SelectCommand.Parameters.AddWithValue("UserId", getUserId());
+            //    adap.Fill(dt);
+            //}
+            //return View(dt);
+
+            //using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            //{
+            //    sqlConnection.Open();
+            //    SqlCommand cmd = new SqlCommand("SharePhotoWithUser", sqlConnection);
+            //    cmd.CommandType = CommandType.StoredProcedure;
+            //    cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
+            //    cmd.Parameters.AddWithValue("UserId", photoViewModel.UserId);
+            //    RedirectToPage("User");
+            //    cmd.Parameters.AddWithValue("SharedWith", id);
+            //    cmd.ExecuteNonQuery();
+            //}
+            //return RedirectToAction(nameof(Index));
         }
 
         // GET: PhotoView/Delete/5
@@ -182,6 +208,19 @@ namespace Project2.Controllers
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("UserName", getUser());
                 result = cmd.ExecuteScalar().ToString();
+            }
+            return result;
+        }
+
+        private int getNextVal()
+        {
+            int result;
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand("GetNextSeqValue", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                result = (int)cmd.ExecuteScalar();
             }
             return result;
         }
@@ -236,7 +275,7 @@ namespace Project2.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadFile(UploadFileRequest request)
         {
-            fileName = request.FileName;
+            HttpContext.Session.SetString("fileName", request.FileName);
             await _blobService.UploadFileBlobAsync(request.FilePath, request.FileName);
             return View("AddOrEdit");
         }
@@ -245,10 +284,10 @@ namespace Project2.Controllers
         {
             if (ext.ToLower() != "jpg" | ext.ToLower() != "jpeg" | ext.ToLower() != "png" | ext.ToLower() != "bmp" | ext.ToLower() != "gif" | ext.ToLower() != "ico" | ext.ToLower() != "tiff")
             {
-                return false;
+                return true;
             }
             else
-                return true;
+                return false;
         }
     }
 }

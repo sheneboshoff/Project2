@@ -32,6 +32,7 @@ namespace Project2
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddOptions();
+            services.AddSession();
             //services.Configure<AzureStorageConfig>(Configuration.GetSection("AzureStorageConfig"));
             //services.AddScoped<IBlobStorageRepo, BlobStorageRepo>();
             services.AddSingleton(x => new BlobServiceClient(Configuration.GetValue<string>("AzureBlobStorageConnectionString")));
@@ -52,6 +53,8 @@ namespace Project2
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
+            app.UseSession();
             app.UseStaticFiles();
 
             app.UseRouting();
@@ -66,6 +69,8 @@ namespace Project2
                     pattern: "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
             });
+
+            
         }
 
     }
