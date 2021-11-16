@@ -52,7 +52,7 @@ namespace Project2.Controllers
         }
 
         // GET: PhotoView/Edit/5
-        public IActionResult AddOrEdit(int? id)
+        public IActionResult Edit(int? id)
         {
             PhotoViewModel photoViewModel = new PhotoViewModel();
             if (id > 0)
@@ -67,7 +67,7 @@ namespace Project2.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddOrEdit([Bind("PhotoId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
+        public IActionResult Edit([Bind("PhotoId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
         {
             if (ModelState.IsValid)
             {
@@ -277,7 +277,7 @@ namespace Project2.Controllers
         {
             HttpContext.Session.SetString("fileName", request.FileName);
             await _blobService.UploadFileBlobAsync(request.FilePath, request.FileName);
-            return View("AddOrEdit");
+            return View("Create");
         }
 
         public bool validateExtension(string ext)

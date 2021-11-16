@@ -47,7 +47,7 @@ namespace Project2.Controllers
         }
 
         // GET: Photos/Create
-        public IActionResult AddOrEdit(int id = 0)
+        public IActionResult Edit(int id = 0)
         {
             if (id == 0)
                 return View(new Photo());
@@ -60,7 +60,7 @@ namespace Project2.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddOrEdit([Bind("PhotoId,UserId,Photo_Name,Photo_Format,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] Photo photo)
+        public async Task<IActionResult> Edit([Bind("PhotoId,UserId,Photo_Name,Photo_Format,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] Photo photo)
         {            
             if (ModelState.IsValid)
             {
