@@ -115,7 +115,7 @@ namespace Project2.Controllers
                     using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
                     {
                         sqlConnection.Open();
-                        SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
+                        SqlCommand cmd = new SqlCommand("CreateNewPhoto", sqlConnection);
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("PhotoId", getNextVal());
                         cmd.Parameters.AddWithValue("UserId", getUserId());
@@ -140,9 +140,23 @@ namespace Project2.Controllers
             return View(photoViewModel);
         }
 
+        //public IActionResult ShareWith()
+        //{
+        //    return RedirectToAction("Index", "User");
+        //}
+
         public IActionResult ShareWith([Bind("PhotoId,Creator")] User userModel)
         {
-            return RedirectToAction("Index", "User");
+            DataTable dt = new DataTable();
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            {
+                sqlConnection.Open();
+                SqlDataAdapter adap = new SqlDataAdapter("ViewAllUsers", sqlConnection);
+                adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                adap.Fill(dt);
+            }
+            return View(dt);
+            //return RedirectToAction("Index", "User");
             //DataTable dt = new DataTable();
             //using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
             //{
