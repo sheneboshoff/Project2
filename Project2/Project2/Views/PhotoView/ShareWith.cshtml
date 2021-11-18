@@ -36,7 +36,7 @@
                     @Model.Rows[i]["Email"]
                 </td>
                 <td>
-                    <a id="item.UserId" asp-action="Select" onclick="select(this)">Select</a>
+                    <a id="item.UserId" asp-action="Select" asp-route-id="@Model.Rows[i]["Email"]">Select</a>
                     @*<input id="item.UserId" type="button" value="Select" onclick="select(this)" />*@
                 </td>
             </tr>
@@ -44,14 +44,16 @@
     </tbody>
 </table>
 
-<script>
-    function select(item) {
-        var itemId = item.id,
-        var url = '@Url.Action("Select/", "User")';
-        var data = { Id: itemId };
-        $.post(url, data, function (result) {
-            var id = '#postedFor' + postId;
-            $(id).html(result);
-        });
-    }
-</script>
+@*
+        onclick="select(this)"
+    <script>
+        function select(item) {
+            var itemId = item.id,
+            var url = '@Url.Action("Select/", "User")';
+            var data = { Id: itemId };
+            $.post(url, data, function (result) {
+                var id = '#postedFor' + postId;
+                $(id).html(result);
+            });
+        }
+    </script>*@

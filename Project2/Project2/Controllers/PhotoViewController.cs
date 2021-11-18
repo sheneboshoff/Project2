@@ -14,6 +14,7 @@ namespace Project2.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IBlobService _blobService;
+        private int _photoId;
 
         public PhotoViewController(IConfiguration configuration, IBlobService blobService)
         {
@@ -22,7 +23,7 @@ namespace Project2.Controllers
         }
 
         // GET: PhotoView
-        public IActionResult Index(string searchString)
+        public IActionResult Index(/*string searchString*/)
         {
             DataTable dt = new DataTable();
             using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
@@ -36,19 +37,19 @@ namespace Project2.Controllers
             }
             return View(dt);
 
-            if (!String.IsNullOrEmpty(searchString))
-            {
-                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
-                {
-                    sqlConnection.Open();
-                    SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("UserId", getUser());
-                    SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
-                    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
-                    adap.Fill(dt);
-                }
-            }
+            //if (!String.IsNullOrEmpty(searchString))
+            //{
+            //    using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            //    {
+            //        sqlConnection.Open();
+            //        SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
+            //        cmd.CommandType = CommandType.StoredProcedure;
+            //        cmd.Parameters.AddWithValue("UserId", getUser());
+            //        SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
+            //        adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+            //        adap.Fill(dt);
+            //    }
+            //}
         }
 
         // GET: PhotoView/Edit/5
@@ -138,15 +139,11 @@ namespace Project2.Controllers
                 }
             }
             return View(photoViewModel);
-        }
+        }        
 
-        //public IActionResult ShareWith()
-        //{
-        //    return RedirectToAction("Index", "User");
-        //}
-
-        public IActionResult ShareWith([Bind("PhotoId,Creator")] User userModel)
+        public IActionResult ShareWith(int photoId)
         {
+            _photoId = photoId;
             DataTable dt = new DataTable();
             using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
             {
@@ -156,31 +153,28 @@ namespace Project2.Controllers
                 adap.Fill(dt);
             }
             return View(dt);
-            //return RedirectToAction("Index", "User");
-            //DataTable dt = new DataTable();
-            //using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
-            //{
-            //    sqlConnection.Open();
-            //    SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
-            //    SqlDataAdapter adap = new SqlDataAdapter("ViewAllUsers", sqlConnection);
-            //    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
-            //    adap.SelectCommand.Parameters.AddWithValue("UserId", getUserId());
-            //    adap.Fill(dt);
-            //}
-            //return View(dt);
+        }
 
-            //using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
-            //{
-            //    sqlConnection.Open();
-            //    SqlCommand cmd = new SqlCommand("SharePhotoWithUser", sqlConnection);
-            //    cmd.CommandType = CommandType.StoredProcedure;
-            //    cmd.Parameters.AddWithValue("PhotoId", photoViewModel.PhotoId);
-            //    cmd.Parameters.AddWithValue("UserId", photoViewModel.UserId);
-            //    RedirectToPage("User");
-            //    cmd.Parameters.AddWithValue("SharedWith", id);
-            //    cmd.ExecuteNonQuery();
-            //}
-            //return RedirectToAction(nameof(Index));
+        [Route("ShareWith/{id:int}")]
+        public IActionResult ShareWith (int? photoId)
+        {
+            UserPhoto userPhoto = new UserPhoto();
+            return View();
+        }
+
+        public IActionResult Select(string email)
+        {
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            {
+                sqlConnection.Open();
+                SqlCommand cmd = new SqlCommand("SharePhotoWithUser", sqlConnection);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("PhotoId", _photoId);
+                cmd.Parameters.AddWithValue("Creator", getUserId());
+                cmd.Parameters.AddWithValue("SharedWith", getUserByEmail(email));
+                cmd.ExecuteNonQuery();
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: PhotoView/Delete/5
@@ -221,6 +215,20 @@ namespace Project2.Controllers
                 SqlCommand cmd = new SqlCommand("GetUserIdByName", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("UserName", getUser());
+                result = cmd.ExecuteScalar().ToString();
+            }
+            return result;
+        }
+
+        private string getUserByEmail(string email)
+        {
+            string result;
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand("GetUserByEmail", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("Email", email);
                 result = cmd.ExecuteScalar().ToString();
             }
             return result;
