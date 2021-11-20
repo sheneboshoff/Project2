@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "storage1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/project2photosharing",
+      "type": "storage.azure",
+      "connectionId": "AzureBlobStorageConnectionString",
+      "secretStore": "AzureAppSettings"
+    },
+    "mssql1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/project2-photosharing/databases/PhotoSharingDB",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:Project2DbContextConnection",
+      "secretStore": "AzureAppSettings"
+    }
+  }
+}

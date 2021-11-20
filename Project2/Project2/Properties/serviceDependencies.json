@@ -1,12 +1,16 @@
 {
   "dependencies": {
-    "mssql1": {
-      "type": "mssql",
-      "connectionId": "ConnectionStrings:Project2DbContextConnection"
-    },
     "mssql2": {
       "type": "mssql",
       "connectionId": "ConnectionStrings:Project2Context"
+    },
+    "storage1": {
+      "type": "storage",
+      "connectionId": "AzureBlobStorageConnectionString"
+    },
+    "mssql1": {
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:Project2DbContextConnection"
     }
   }
 }
