@@ -54,7 +54,8 @@
                 <td>
                     <a asp-action="Edit" asp-route-id="@Model.Rows[i]["PhotoId"]">Edit</a> |
                     <a asp-action="Delete" asp-route-id="@Model.Rows[i]["PhotoId"]">Delete</a> |
-                    <a asp-action="ShareWith" asp-route-id="@Model.Rows[i]["PhotoId"]">Share with</a>
+                    <a asp-action="ShareWith" asp-route-id="@Model.Rows[i]["PhotoId"]">Share with</a> |
+                    <a asp-action="DownloadFile" asp-route-id="@Model.Rows[i]["Photo_Name"]">Download</a>
                 </td>
             </tr>
         }

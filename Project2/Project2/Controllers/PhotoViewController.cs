@@ -6,6 +6,7 @@ using Project2.Models;
 using Project2.Services;
 using System;
 using System.Data;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Project2.Controllers
@@ -302,6 +303,18 @@ namespace Project2.Controllers
             return View("Create");
         }
 
+        //public IActionResult DownloadFile()
+        //{
+        //    return View("DownloadFile");
+        //}
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadFile(string filename)
+        {
+            await _blobService.DownloadFile(filename);
+            return View("Index");
+        }
+
         public bool validateExtension(string ext)
         {
             if (ext.ToLower() != "jpg" | ext.ToLower() != "jpeg" | ext.ToLower() != "png" | ext.ToLower() != "bmp" | ext.ToLower() != "gif" | ext.ToLower() != "ico" | ext.ToLower() != "tiff")
@@ -311,5 +324,54 @@ namespace Project2.Controllers
             else
                 return false;
         }
-    }
+
+        public IActionResult RemoveAccess(int photoId)
+        {
+            _photoId = photoId;
+            DataTable dt = new DataTable();
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            {
+                sqlConnection.Open();
+                SqlDataAdapter adap = new SqlDataAdapter("UsersSharedWith", sqlConnection);
+                adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                adap.SelectCommand.Parameters.AddWithValue("Creator", getUserId());
+                adap.Fill(dt);
+            }
+            return View(dt);
+        }
+
+        
+        //public IActionResult RemoveAccess(int? photoId)
+        //{
+        //    UserPhoto userPhoto = new UserPhoto();
+        //    return View();
+        //}
+
+        public IActionResult SelectToRemove(string email)
+        {
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            {
+                sqlConnection.Open();
+                SqlCommand cmd = new SqlCommand("RemovePhotoAccess", sqlConnection);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("PhotoId", _photoId);
+                cmd.Parameters.AddWithValue("Creator", getUserId());
+                cmd.Parameters.AddWithValue("SharedWith", getUserByEmail(email));
+                cmd.ExecuteNonQuery();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult SharedWithMe()
+        {
+            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            {
+                sqlConnection.Open();
+                SqlCommand cmd = new SqlCommand("UsersSharedWith", sqlConnection);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("SharedWith", getUserId());
+                cmd.ExecuteNonQuery();
+            }
+            return RedirectToAction(nameof(Index));
+        }
 }

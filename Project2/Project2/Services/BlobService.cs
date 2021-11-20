@@ -62,5 +62,13 @@ namespace Project2.Services
             var blobClient = containerClient.GetBlobClient(fileName);
             await blobClient.UploadAsync(filePath, new BlobHttpHeaders { ContentType = filePath.GetContentType() });
         }
+
+        public async Task DownloadFile(string fileName)
+        {
+            string downloadPath = "C:\\Users\\shene\\Downloads\\";
+            var containerClient = _blobServiceClient.GetBlobContainerClient("photos");
+            var blobClient = containerClient.GetBlobClient(fileName);
+            await blobClient.DownloadToAsync(downloadPath);
+        }
     }
 }
