@@ -234,7 +234,7 @@ namespace Project2.Controllers
                     cmd.Parameters.AddWithValue("PhotoId", id);
                     cmd.ExecuteNonQuery();
                 }
-
+                _ = DeleteFile(getPhotoNameById(id));
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception e)
@@ -386,6 +386,19 @@ namespace Project2.Controllers
             }
         }
 
+        public async Task<IActionResult> DeleteFile(string filename)
+        {
+            try
+            {
+                await _blobService.DeleteBlobAsync(filename);
+                return View("Index");
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> DownloadFile(string filename)
         {
@@ -477,6 +490,28 @@ namespace Project2.Controllers
             }
             catch (Exception e)
             {
+                throw new Exception("Something went wrong", e);
+            }
+        }
+
+        public string getPhotoNameById(int id)
+        {
+            try
+            {
+                string result = 0;
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("GetPhotoNameById", sqlConnection);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("PhotoId", id);
+                    result = cmd.ExecuteScalar().ToString();
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+
                 throw new Exception("Something went wrong", e);
             }
         }
