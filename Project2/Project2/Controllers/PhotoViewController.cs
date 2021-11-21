@@ -138,16 +138,31 @@ namespace Project2.Controllers
                             cmd.Parameters.AddWithValue("UserId", getUserId());
                             cmd.Parameters.AddWithValue("Photo_Name", fileName);
                             cmd.Parameters.AddWithValue("Photo_Format", fileExtension);
-                            cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
+                            if (photoViewModel.Photo_Geolocation == null)
+                            { 
+                                cmd.Parameters.AddWithValue("Photo_Geolocation", null); 
+                            }
+                            else
+                            {
+                                cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
+                            }
                             if (photoViewModel.Photo_Tags == null)
                             {
-                                cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags);
+                                cmd.Parameters.AddWithValue("Photo_Tags", null);
                             }
                             else
                             {
                                 cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags + ",");
                             }
-                            cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate);
+                            if (photoViewModel.Photo_CaptureDate == null)
+                            {
+                                cmd.Parameters.AddWithValue("Photo_CaptureDate", null);
+                            }
+                            else
+                            {
+                                cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate); 
+                            }
+                            
                             cmd.ExecuteNonQuery();
                             fileName = "";
                         }
@@ -319,7 +334,7 @@ namespace Project2.Controllers
                 using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
                 {
                     DataTable dt = new DataTable();
-                    con.Open();
+                    con.Open();                    
                     SqlDataAdapter adap = new SqlDataAdapter("GetPhotoById", con);
                     adap.SelectCommand.CommandType = CommandType.StoredProcedure;
                     adap.SelectCommand.Parameters.AddWithValue("PhotoId", id);
@@ -452,6 +467,27 @@ namespace Project2.Controllers
             }
         }
 
+        public IActionResult SharedWithMe()
+        {
+            try
+            {
+                DataTable dt = new DataTable();
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlDataAdapter adap = new SqlDataAdapter("SharedWithUser", sqlConnection);
+                    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                    adap.SelectCommand.Parameters.AddWithValue("SharedWith", getUserId());
+                    adap.Fill(dt);
+                }
+                return View(dt);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
+        }
+
         public IActionResult SelectToRemove(string email)
         {
             try
@@ -474,31 +510,31 @@ namespace Project2.Controllers
             }
         }
 
-        public IActionResult SharedWithMe()
-        {
-            try
-            {
-                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
-                {
-                    sqlConnection.Open();
-                    SqlCommand cmd = new SqlCommand("UsersSharedWith", sqlConnection);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("SharedWith", getUserId());
-                    cmd.ExecuteNonQuery();
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Something went wrong", e);
-            }
-        }
+        //public IActionResult SharedWithMe()
+        //{
+        //    try
+        //    {
+        //        using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+        //        {
+        //            sqlConnection.Open();
+        //            SqlCommand cmd = new SqlCommand("UsersSharedWith", sqlConnection);
+        //            cmd.CommandType = CommandType.StoredProcedure;
+        //            cmd.Parameters.AddWithValue("SharedWith", getUserId());
+        //            cmd.ExecuteNonQuery();
+        //        }
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw new Exception("Something went wrong", e);
+        //    }
+        //}
 
         public string getPhotoNameById(int id)
         {
             try
             {
-                string result = 0;
+                string result;
                 using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
                 {
                     sqlConnection.Open();
