@@ -6,7 +6,6 @@ using Project2.Models;
 using Project2.Services;
 using System;
 using System.Data;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Project2.Controllers
@@ -26,17 +25,24 @@ namespace Project2.Controllers
         // GET: PhotoView
         public IActionResult Index(/*string searchString*/)
         {
-            DataTable dt = new DataTable();
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                sqlConnection.Open();
-                SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
-                SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
-                adap.SelectCommand.CommandType = CommandType.StoredProcedure;
-                adap.SelectCommand.Parameters.AddWithValue("UserId", getUserId());
-                adap.Fill(dt);
+                DataTable dt = new DataTable();
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("ViewAllPhotos", sqlConnection);
+                    SqlDataAdapter adap = new SqlDataAdapter("ViewAllPhotos", sqlConnection);
+                    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                    adap.SelectCommand.Parameters.AddWithValue("UserId", getUserId());
+                    adap.Fill(dt);
+                }
+                return View(dt);
             }
-            return View(dt);
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
 
             //if (!String.IsNullOrEmpty(searchString))
             //{
@@ -71,58 +77,16 @@ namespace Project2.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit([Bind("PhotoId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
         {
-            if (ModelState.IsValid)
+            try
             {
-                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
-                {
-                    sqlConnection.Open();
-                    SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("PhotoId", getNextVal());
-                    cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
-                    if (photoViewModel.Photo_Tags == null)
-                    {
-                        cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags);
-                    }
-                    else
-                    {
-                        cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags + ",");
-                    }
-                    cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate);
-                    cmd.ExecuteNonQuery();
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(photoViewModel);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("UserId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
-        {
-            if (ModelState.IsValid)
-            {
-                string fileName = HttpContext.Session.GetString("fileName");
-                string fileExtension = "";
-                string[] file = fileName.Split('.');
-                fileName = file[0];
-                fileExtension = file[1];
-
-                if (!validateExtension(fileExtension))
-                {
-                    return View("ExtError");
-                }
-                else
+                if (ModelState.IsValid)
                 {
                     using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
                     {
                         sqlConnection.Open();
-                        SqlCommand cmd = new SqlCommand("CreateNewPhoto", sqlConnection);
+                        SqlCommand cmd = new SqlCommand("PhotoAddOrEdit", sqlConnection);
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("PhotoId", getNextVal());
-                        cmd.Parameters.AddWithValue("UserId", getUserId());
-                        cmd.Parameters.AddWithValue("Photo_Name", fileName);
-                        cmd.Parameters.AddWithValue("Photo_Format", fileExtension);
                         cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
                         if (photoViewModel.Photo_Tags == null)
                         {
@@ -134,30 +98,93 @@ namespace Project2.Controllers
                         }
                         cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate);
                         cmd.ExecuteNonQuery();
-                        fileName = "";
                     }
                     return RedirectToAction(nameof(Index));
                 }
+                return View(photoViewModel);
             }
-            return View(photoViewModel);
-        }        
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create([Bind("UserId,Photo_Geolocation,Photo_Tags,Photo_CaptureDate")] PhotoViewModel photoViewModel)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    string fileName = HttpContext.Session.GetString("fileName");
+                    string fileExtension = "";
+                    string[] file = fileName.Split('.');
+                    fileName = file[0];
+                    fileExtension = file[1];
+
+                    if (!validateExtension(fileExtension))
+                    {
+                        return View("ExtError");
+                    }
+                    else
+                    {
+                        using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                        {
+                            sqlConnection.Open();
+                            SqlCommand cmd = new SqlCommand("CreateNewPhoto", sqlConnection);
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("PhotoId", getNextVal());
+                            cmd.Parameters.AddWithValue("UserId", getUserId());
+                            cmd.Parameters.AddWithValue("Photo_Name", fileName);
+                            cmd.Parameters.AddWithValue("Photo_Format", fileExtension);
+                            cmd.Parameters.AddWithValue("Photo_Geolocation", photoViewModel.Photo_Geolocation);
+                            if (photoViewModel.Photo_Tags == null)
+                            {
+                                cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags);
+                            }
+                            else
+                            {
+                                cmd.Parameters.AddWithValue("Photo_Tags", photoViewModel.Photo_Tags + ",");
+                            }
+                            cmd.Parameters.AddWithValue("Photo_CaptureDate", photoViewModel.Photo_CaptureDate);
+                            cmd.ExecuteNonQuery();
+                            fileName = "";
+                        }
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+                return View(photoViewModel);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
+        }
 
         public IActionResult ShareWith(int photoId)
         {
-            _photoId = photoId;
-            DataTable dt = new DataTable();
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                sqlConnection.Open();
-                SqlDataAdapter adap = new SqlDataAdapter("ViewAllUsers", sqlConnection);
-                adap.SelectCommand.CommandType = CommandType.StoredProcedure;
-                adap.Fill(dt);
+                _photoId = photoId;
+                DataTable dt = new DataTable();
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlDataAdapter adap = new SqlDataAdapter("ViewAllUsers", sqlConnection);
+                    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                    adap.Fill(dt);
+                }
+                return View(dt);
             }
-            return View(dt);
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         [Route("ShareWith/{id:int}")]
-        public IActionResult ShareWith (int? photoId)
+        public IActionResult ShareWith(int? photoId)
         {
             UserPhoto userPhoto = new UserPhoto();
             return View();
@@ -165,17 +192,24 @@ namespace Project2.Controllers
 
         public IActionResult Select(string email)
         {
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                sqlConnection.Open();
-                SqlCommand cmd = new SqlCommand("SharePhotoWithUser", sqlConnection);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("PhotoId", _photoId);
-                cmd.Parameters.AddWithValue("Creator", getUserId());
-                cmd.Parameters.AddWithValue("SharedWith", getUserByEmail(email));
-                cmd.ExecuteNonQuery();
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("SharePhotoWithUser", sqlConnection);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("PhotoId", _photoId);
+                    cmd.Parameters.AddWithValue("Creator", getUserId());
+                    cmd.Parameters.AddWithValue("SharedWith", getUserByEmail(email));
+                    cmd.ExecuteNonQuery();
+                }
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         // GET: PhotoView/Delete/5
@@ -190,16 +224,23 @@ namespace Project2.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                sqlConnection.Open();
-                SqlCommand cmd = new SqlCommand("PhotoDeleteById", sqlConnection);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("PhotoId", id);
-                cmd.ExecuteNonQuery();
-            }
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("PhotoDeleteById", sqlConnection);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("PhotoId", id);
+                    cmd.ExecuteNonQuery();
+                }
 
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         private string getUser()
@@ -209,85 +250,120 @@ namespace Project2.Controllers
 
         private string getUserId()
         {
-            string result;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                con.Open();
-                SqlCommand cmd = new SqlCommand("GetUserIdByName", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("UserName", getUser());
-                result = cmd.ExecuteScalar().ToString();
+                string result;
+                using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand("GetUserIdByName", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("UserName", getUser());
+                    result = cmd.ExecuteScalar().ToString();
+                }
+                return result;
             }
-            return result;
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         private string getUserByEmail(string email)
         {
-            string result;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                con.Open();
-                SqlCommand cmd = new SqlCommand("GetUserByEmail", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("Email", email);
-                result = cmd.ExecuteScalar().ToString();
+                string result;
+                using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand("GetUserByEmail", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("Email", email);
+                    result = cmd.ExecuteScalar().ToString();
+                }
+                return result;
             }
-            return result;
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         private int getNextVal()
         {
-            int result;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                con.Open();
-                SqlCommand cmd = new SqlCommand("GetNextSeqValue", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                result = (int)cmd.ExecuteScalar();
+                int result;
+                using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand("GetNextSeqValue", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    result = (int)cmd.ExecuteScalar();
+                }
+                return result;
             }
-            return result;
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         [NonAction]
         public PhotoViewModel FetchPhotoById(int? id)
         {
-            PhotoViewModel photoViewModel = new PhotoViewModel();
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                DataTable dt = new DataTable();
-                con.Open();
-                SqlDataAdapter adap = new SqlDataAdapter("GetPhotoById", con);
-                adap.SelectCommand.CommandType = CommandType.StoredProcedure;
-                adap.SelectCommand.Parameters.AddWithValue("PhotoId", id);
-                adap.Fill(dt);
-
-                if (dt.Rows.Count == 1)
+                PhotoViewModel photoViewModel = new PhotoViewModel();
+                using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
                 {
-                    photoViewModel.PhotoId = Convert.ToInt32(dt.Rows[0]["PhotoId"].ToString());
-                    photoViewModel.UserId = dt.Rows[1]["UserId"].ToString();
-                    photoViewModel.Photo_Name = dt.Rows[2]["Photo_Name"].ToString();
-                    photoViewModel.Photo_Format = dt.Rows[3]["Photo_Format"].ToString();
-                    photoViewModel.Photo_Geolocation = dt.Rows[4]["Photo_Geolocation"].ToString();
-                    photoViewModel.Photo_Tags = dt.Rows[5]["Photo_Tags"].ToString();
-                    photoViewModel.Photo_CaptureDate = dt.Rows[6]["Photo_CaptureDate"].ToString();
-                }
+                    DataTable dt = new DataTable();
+                    con.Open();
+                    SqlDataAdapter adap = new SqlDataAdapter("GetPhotoById", con);
+                    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                    adap.SelectCommand.Parameters.AddWithValue("PhotoId", id);
+                    adap.Fill(dt);
 
-                return photoViewModel;
+                    if (dt.Rows.Count == 1)
+                    {
+                        photoViewModel.PhotoId = Convert.ToInt32(dt.Rows[0]["PhotoId"].ToString());
+                        photoViewModel.UserId = dt.Rows[1]["UserId"].ToString();
+                        photoViewModel.Photo_Name = dt.Rows[2]["Photo_Name"].ToString();
+                        photoViewModel.Photo_Format = dt.Rows[3]["Photo_Format"].ToString();
+                        photoViewModel.Photo_Geolocation = dt.Rows[4]["Photo_Geolocation"].ToString();
+                        photoViewModel.Photo_Tags = dt.Rows[5]["Photo_Tags"].ToString();
+                        photoViewModel.Photo_CaptureDate = dt.Rows[6]["Photo_CaptureDate"].ToString();
+                    }
+
+                    return photoViewModel;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
             }
         }
 
         public string getChosenUser()
         {
-            string result;
-            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                con.Open();
-                SqlCommand cmd = new SqlCommand("GetUserIdByName", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("UserName", getUser());
-                result = cmd.ToString();
+                string result;
+                using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand("GetUserIdByName", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("UserName", getUser());
+                    result = cmd.ToString();
+                }
+                return result;
             }
-            return result;
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         public IActionResult UploadFile()
@@ -298,80 +374,111 @@ namespace Project2.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadFile(UploadFileRequest request)
         {
-            HttpContext.Session.SetString("fileName", request.FileName);
-            await _blobService.UploadFileBlobAsync(request.FilePath, request.FileName);
-            return View("Create");
+            try
+            {
+                HttpContext.Session.SetString("fileName", request.FileName);
+                await _blobService.UploadFileBlobAsync(request.FilePath, request.FileName);
+                return View("Create");
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
-
-        //public IActionResult DownloadFile()
-        //{
-        //    return View("DownloadFile");
-        //}
 
         [HttpGet]
         public async Task<IActionResult> DownloadFile(string filename)
         {
-            await _blobService.DownloadFile(filename);
-            return View("Index");
+            try
+            {
+                await _blobService.DownloadFile(filename);
+                return View("Index");
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         public bool validateExtension(string ext)
         {
-            if (ext.ToLower() != "jpg" | ext.ToLower() != "jpeg" | ext.ToLower() != "png" | ext.ToLower() != "bmp" | ext.ToLower() != "gif" | ext.ToLower() != "ico" | ext.ToLower() != "tiff")
+            try
             {
-                return true;
+                if (ext.ToLower() != "jpg" | ext.ToLower() != "jpeg" | ext.ToLower() != "png" | ext.ToLower() != "bmp" | ext.ToLower() != "gif" | ext.ToLower() != "ico" | ext.ToLower() != "tiff")
+                {
+                    return true;
+                }
+                else
+                    return false;
             }
-            else
-                return false;
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         public IActionResult RemoveAccess(int photoId)
         {
-            _photoId = photoId;
-            DataTable dt = new DataTable();
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                sqlConnection.Open();
-                SqlDataAdapter adap = new SqlDataAdapter("UsersSharedWith", sqlConnection);
-                adap.SelectCommand.CommandType = CommandType.StoredProcedure;
-                adap.SelectCommand.Parameters.AddWithValue("Creator", getUserId());
-                adap.Fill(dt);
+                _photoId = photoId;
+                DataTable dt = new DataTable();
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlDataAdapter adap = new SqlDataAdapter("UsersSharedWith", sqlConnection);
+                    adap.SelectCommand.CommandType = CommandType.StoredProcedure;
+                    adap.SelectCommand.Parameters.AddWithValue("Creator", getUserId());
+                    adap.Fill(dt);
+                }
+                return View(dt);
             }
-            return View(dt);
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
-
-        
-        //public IActionResult RemoveAccess(int? photoId)
-        //{
-        //    UserPhoto userPhoto = new UserPhoto();
-        //    return View();
-        //}
 
         public IActionResult SelectToRemove(string email)
         {
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                sqlConnection.Open();
-                SqlCommand cmd = new SqlCommand("RemovePhotoAccess", sqlConnection);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("PhotoId", _photoId);
-                cmd.Parameters.AddWithValue("Creator", getUserId());
-                cmd.Parameters.AddWithValue("SharedWith", getUserByEmail(email));
-                cmd.ExecuteNonQuery();
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("RemovePhotoAccess", sqlConnection);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("PhotoId", _photoId);
+                    cmd.Parameters.AddWithValue("Creator", getUserId());
+                    cmd.Parameters.AddWithValue("SharedWith", getUserByEmail(email));
+                    cmd.ExecuteNonQuery();
+                }
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
 
         public IActionResult SharedWithMe()
         {
-            using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+            try
             {
-                sqlConnection.Open();
-                SqlCommand cmd = new SqlCommand("UsersSharedWith", sqlConnection);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("SharedWith", getUserId());
-                cmd.ExecuteNonQuery();
+                using (SqlConnection sqlConnection = new SqlConnection(_configuration.GetConnectionString("Project2DbContextConnection")))
+                {
+                    sqlConnection.Open();
+                    SqlCommand cmd = new SqlCommand("UsersSharedWith", sqlConnection);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("SharedWith", getUserId());
+                    cmd.ExecuteNonQuery();
+                }
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            catch (Exception e)
+            {
+                throw new Exception("Something went wrong", e);
+            }
         }
+    }
 }
